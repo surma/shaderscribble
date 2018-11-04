@@ -1,24 +1,29 @@
 export default `
-<!--
-WebScribble
+/*
+ShaderScribble
 ===========
 by Surma (twitter.com/DasSurma)
 
 Options:
 --------
 
-- norun: Don’t auto-run your code
+- norun: Don’t start the rendering loop
 - help: Discard any stored data and show this
 - boilerplate: Discard any stored data and
                load a semi-sane boilerplate
 - flip: Split horizontally
 
 Example:
-https://webscribble.surma.technology/#norun,boilerplate,flip
+https://shaderscribble.surma.technology/#norun,boilerplate,flip
+
+GLSL Cheat sheet:
+-----------------
+
+https://www.khronos.org/files/webgl20-reference-guide.pdf
 
 -------------------
 
-Code at github.com/surma/webscribble
+Code at github.com/surma/shaderscribble
 Apache 2.0
--->
+*/
 `;

@@ -1,6 +1,6 @@
-# WebScribble
+# ShaderScribble
 
-A simple, no-fluff web scratchpad.
+A simple, no-fluff shader scratchpad.
 
 ---
 

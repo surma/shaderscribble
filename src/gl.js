@@ -10,6 +10,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export function modeInjector(CodeMirror) {
-  $inline("../node_modules/codemirror/mode/clike/clike.js");
+
+export function setShader(gl, program, type, src) {
+  const shader = gl.createShader(type);
+  gl.shaderSource(shader, src);
+  gl.compileShader(shader);
+  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS))
+    throw new Error(`Error compiling ${type==gl.VERTEX_SHADER?'vertex':'fragment'} shader: ${gl.getShaderInfoLog(shader)}`);
+  gl.attachShader(program, shader);
+  return shader;
 }

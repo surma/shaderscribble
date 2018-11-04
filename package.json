@@ -1,5 +1,5 @@
 {
-  "name": "webscribble",
+  "name": "shaderscribble",
   "version": "0.0.1",
   "scripts": {
     "rewrite": "replaceinfiles -r static.hashmanifest.json -s '{src/index.html,dist/manifest*.json}' -d 'dist/{name}{ext}' && replaceinfiles -r entrypoint.hashmanifest.json -s dist/index.html -d dist/index.html",

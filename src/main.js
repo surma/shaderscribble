@@ -10,36 +10,49 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {setShader} from "./gl.js";
+import vertexShader from "./templates/vertexshader.js";
 import HelpText from "./templates/help.js";
 import CodeMirror from "codemirror/src/codemirror.js";
 window.CodeMirror = CodeMirror;
 
 let idbset, idbget;
 const KEY = "scratchpad";
-const iframe = document.querySelector("iframe");
-let idbkeyval = null;
+const canvas = document.querySelector("canvas");
+let gl;
+let program;
+let iGlobalTimeUniform;
+let iResolutionUniform;
 let dirty = false;
 let hasBeenEdited = false;
-let lastObjectURL = null;
+let lastVertexShader = null;
 
-function updateIframe() {
+function updateShaders() {
   if (!dirty) {
     return;
-  }
-  if (lastObjectURL) {
-    URL.revokeObjectURL(lastObjectURL);
-    lastObjectURL = null;
   }
   const content = editor.getValue();
   if (idbset) {
     idbset(KEY, content);
   }
-  if (!hasFlag("norun")) {
-    lastObjectURL = URL.createObjectURL(
-      new Blob([content], { type: "text/html" })
-    );
-    iframe.contentWindow.location = lastObjectURL;
+
+  setShader(gl, program, gl.VERTEX_SHADER, vertexShader);
+  if (lastVertexShader) {
+    gl.detachShader(program, lastVertexShader);
   }
+  lastVertexShader = setShader(gl, program, gl.FRAGMENT_SHADER, content);
+  gl.linkProgram(program);
+  if(!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+    throw new Error(`Couldn’t link program: ${gl.getProgramInfoLog(program)}`);
+  }
+  gl.validateProgram(program);
+  if(!gl.getProgramParameter(program, gl.VALIDATE_STATUS)) {
+    throw new Error(`Couldn’t validate program: ${gl.getProgramInfoLog(program)}`);
+  }
+  gl.useProgram(program);
+  iGlobalTimeUniform = gl.getUniformLocation(program, 'iTime');
+  iResolutionUniform = gl.getUniformLocation(program, 'iResolution');
+  gl.uniform2f(iResolutionUniform, canvas.width, canvas.height);
   dirty = false;
 }
 
@@ -57,6 +70,51 @@ function loadCSS(file) {
   });
 }
 
+function setupCanvas(editor) {
+  const size = canvas.getBoundingClientRect();
+  [canvas.width, canvas.height] = [size.width, size.height];
+  if (hasFlag("realpixels")) {
+    canvas.width *= devicePixelRatio;
+    canvas.height *= devicePixelRatio;
+  }
+  gl = canvas.getContext('webgl2', {antialias: false});
+  gl.viewport(0, 0, canvas.width, canvas.height);
+  program = gl.createProgram();
+  updateShaders();
+
+  const vao = gl.createVertexArray();
+  gl.bindVertexArray(vao);
+  const vbo = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+    -1, 1,
+    -1, -1,
+    1, 1,
+
+    1, 1,
+    -1, -1,
+    1, -1,
+  ]), gl.STATIC_DRAW);
+  gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+  gl.enableVertexAttribArray(0);
+
+  iGlobalTimeUniform = gl.getUniformLocation(program, 'iTime');
+  iResolutionUniform = gl.getUniformLocation(program, 'iResolution');
+  const startTime = performance.now();
+  gl.uniform2f(iResolutionUniform, canvas.width, canvas.height);
+  gl.clearColor(0, 0, 0, 1);
+
+  if(!hasFlag("norun")) {
+    setInterval(updateShaders, 1000);
+    requestAnimationFrame(function loop(ts) {
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      gl.uniform1f(iGlobalTimeUniform, (ts - startTime)/1000);
+      gl.drawArrays(gl.TRIANGLES, 0, 6);
+      requestAnimationFrame(loop);
+    });
+  }
+}
+
 async function init() {
   if (hasFlag("flip")) {
     document.body.style.flexDirection = "column-reverse";
@@ -70,7 +128,7 @@ async function init() {
     theme: "monokai"
   });
   editor.on("change", () => (hasBeenEdited = dirty = true));
-  setInterval(updateIframe, 1000);
+  setupCanvas(editor);
 
   // Lazy CSS
   import("../static/third_party/monokai.css").then(m =>loadCSS(m.default));
@@ -89,7 +147,7 @@ async function init() {
 
   const { modeInjector } = await import("./mode-injector.js");
   modeInjector(CodeMirror);
-  editor.setOption("mode", "htmlmixed");
+  editor.setOption("mode", "clike");
 
   navigator.serviceWorker.register("sw.js");
 }
