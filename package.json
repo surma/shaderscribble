@@ -1,0 +1,35 @@
+{
+  "name": "webscribble",
+  "version": "0.0.1",
+  "scripts": {
+    "rewrite": "replaceinfiles -r static.hashmanifest.json -s '{src/index.html,dist/manifest*.json}' -d 'dist/{name}{ext}' && replaceinfiles -r entrypoint.hashmanifest.json -s dist/index.html -d dist/index.html",
+    "static": "cd dist && hashmark -l 8 -m ../static.hashmanifest.json '../static/**/*.{css,jpg,png,svg,json}' './{name}-{hash}{ext}'",
+    "sw": "workbox generateSW workbox-config.js && terser dist/sw.js -o dist/sw.js",
+    "build": "rollup -c && npm run static && npm run rewrite && npm run sw",
+    "serve": "http-server dist -c0 -g",
+    "fmt": "prettier --write src/**/* ./*.{json,js,md}",
+    "gzip": "gzip -k9nr dist"
+  },
+  "author": "Surma <surma@google.com>",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "codemirror": "^5.40.2",
+    "cpx": "^1.5.0",
+    "hashmark": "^5.0.0",
+    "idb-keyval": "^3.1.0",
+    "replaceinfiles": "^1.1.4",
+    "rimraf": "^2.6.2",
+    "rollup": "^0.66.6",
+    "rollup-plugin-commonjs": "^9.2.0",
+    "rollup-plugin-inline-js": "^0.3.0",
+    "rollup-plugin-loadz0r": "^0.4.1",
+    "rollup-plugin-node-resolve": "^3.4.0",
+    "rollup-plugin-terser": "^3.0.0",
+    "rollup-plugin-url": "^2.0.1",
+    "workbox-cli": "^3.6.3"
+  },
+  "devDependencies": {
+    "http-server": "^0.11.1",
+    "prettier": "^1.14.3"
+  }
+}
