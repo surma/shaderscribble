@@ -71,14 +71,8 @@ function loadCSS(file) {
 }
 
 function setupCanvas(editor) {
-  const size = canvas.getBoundingClientRect();
-  [canvas.width, canvas.height] = [size.width, size.height];
-  if (hasFlag("realpixels")) {
-    canvas.width *= devicePixelRatio;
-    canvas.height *= devicePixelRatio;
-  }
   gl = canvas.getContext('webgl2', {antialias: false});
-  gl.viewport(0, 0, canvas.width, canvas.height);
+  resizeCanvas();
   program = gl.createProgram();
   updateShaders();
 
@@ -101,7 +95,6 @@ function setupCanvas(editor) {
   iGlobalTimeUniform = gl.getUniformLocation(program, 'iTime');
   iResolutionUniform = gl.getUniformLocation(program, 'iResolution');
   const startTime = performance.now();
-  gl.uniform2f(iResolutionUniform, canvas.width, canvas.height);
   gl.clearColor(0, 0, 0, 1);
 
   if(!hasFlag("norun")) {
@@ -109,10 +102,21 @@ function setupCanvas(editor) {
     requestAnimationFrame(function loop(ts) {
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
       gl.uniform1f(iGlobalTimeUniform, (ts - startTime)/1000);
+      gl.uniform2f(iResolutionUniform, canvas.width, canvas.height);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
       requestAnimationFrame(loop);
     });
   }
+}
+
+function resizeCanvas() {
+  const size = canvas.getBoundingClientRect();
+  [canvas.width, canvas.height] = [size.width, size.height];
+  if (hasFlag("realpixels")) {
+    canvas.width *= devicePixelRatio;
+    canvas.height *= devicePixelRatio;
+  }
+  gl.viewport(0, 0, canvas.width, canvas.height);
 }
 
 async function init() {
@@ -132,6 +136,7 @@ async function init() {
     theme: "monokai"
   });
   editor.on("change", () => (hasBeenEdited = dirty = true));
+  window.addEventListener("resize", resizeCanvas);
   setupCanvas(editor);
 
   // Lazy CSS
