@@ -1,10 +1,9 @@
-export default `#version 300 es
+export default `#version 100
 precision highp float;
 
-in vec2 uv;
+varying vec2 uv;
 uniform float iTime;
 uniform vec2 iResolution;
-out vec4 color;
 
 void main() {
   vec2 pixel = uv * iResolution;
@@ -20,7 +19,7 @@ void main() {
     sin(iTime*3.0)*0.5 + 0.5
   );
   vec3 lineColor = vec3(1.0, 0.0, 0.0);
-  color = vec4(
+  gl_FragColor = vec4(
     mix(
       backgroundColor,
       lineColor,

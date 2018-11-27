@@ -16,7 +16,11 @@ export function setShader(gl, program, type, src) {
   gl.shaderSource(shader, src);
   gl.compileShader(shader);
   if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS))
-    throw new Error(`Error compiling ${type==gl.VERTEX_SHADER?'vertex':'fragment'} shader: ${gl.getShaderInfoLog(shader)}`);
+    throw new Error(
+      `Error compiling ${
+        type == gl.VERTEX_SHADER ? "vertex" : "fragment"
+      } shader: ${gl.getShaderInfoLog(shader)}`
+    );
   gl.attachShader(program, shader);
   return shader;
 }

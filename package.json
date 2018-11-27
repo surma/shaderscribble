@@ -7,7 +7,7 @@
     "sw": "workbox generateSW workbox-config.js && terser dist/sw.js -o dist/sw.js",
     "build": "rollup -c && npm run static && npm run rewrite && npm run sw",
     "serve": "http-server dist -c0 -g",
-    "fmt": "prettier --write src/**/* ./*.{json,js,md}",
+    "fmt": "prettier --write 'src/**/*.js' './*.{json,js,md}'",
     "gzip": "gzip -k9nr dist"
   },
   "author": "Surma <surma@google.com>",
